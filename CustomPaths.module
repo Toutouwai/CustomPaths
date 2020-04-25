@@ -1,0 +1,203 @@
+<?php namespace ProcessWire;
+
+class CustomPaths extends WireData implements Module, ConfigurableModule {
+
+	/**
+	 * Module information
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Custom Paths',
+			'summary' => 'Allows any page to have a custom path/URL.',
+			'version' => '0.1.0',
+			'author' => 'Robin Sallis',
+			'href' => 'https://github.com/Toutouwai/CustomPaths',
+			'icon' => 'long-arrow-right',
+			'autoload' => true,
+			'requires' => 'ProcessWire>=3.0.118, PHP>=5.4.0',
+		);
+	}
+
+	/**
+	 * Construct
+	 */
+	public function __construct() {
+		parent::__construct();
+		$this->relocate_path_field = 1;
+	}
+
+	/**
+	 * Init
+	 */
+	public function init() {
+		$this->addHookBefore('ProcessPageView::execute', $this, 'beforeViewExecute');
+	}
+
+	/**
+	 * Ready
+	 */
+	public function ready() {
+		$this->addHookBefore('Page::path', $this, 'beforePagePath');
+		$this->addHookMethod('Page::realPath', $this, 'realPath');
+		$this->addHookProperty('Page::realPath', $this, 'realPath');
+		$this->pages->addHookAfter('saveReady', $this, 'afterPagesSaveReady', ['priority' => 200]);
+		$this->addHookAfter('ProcessPageEdit::buildForm', $this, 'beforePageEditBuildForm');
+	}
+
+	/**
+	 * Before ProcessPageView::execute
+	 * Match custom path to page
+	 *
+	 * @param HookEvent $event
+	 */
+	protected function beforeViewExecute(HookEvent $event) {
+		$it = isset($_GET['it']) ? $_GET['it'] : '';
+		$trim_it = trim($it, '/ ');
+		// Explode with a sensible upper limit
+		$path_pieces = explode('/', $trim_it, 20);
+		// Build SQL query to find longest existing custom path using the pieces
+		$first_piece = array_shift($path_pieces);
+		$path = $first_piece ? "/$first_piece/" : '/';
+		$sql = "SELECT pages_id AS id, data AS custom_path FROM field_custom_path WHERE data='$path'";
+		foreach($path_pieces as $piece) {
+			$path .= "$piece/";
+			$sql .= " OR data='$path'";
+		}
+		$sql .= " ORDER BY LENGTH(data) DESC LIMIT 1";
+		$results = $this->wire('database')->query($sql);
+		$match = $results->fetch(\PDO::FETCH_ASSOC);
+		// Return if no match
+		if(!$match) return;
+		// Get real path
+		$real_path = $this->wire('pages')->getPath($match['id']);
+		// Work out potential page number and/or URL segment suffix
+		$custom_path = rtrim($match['custom_path'], '/');
+		$suffix = substr($it, strlen($custom_path));
+		// Set "it"
+		$_GET['it'] = $real_path . $suffix;
+	}
+
+	/**
+	 * Before Page::path
+	 * Return custom path when one exists
+	 *
+	 * @param HookEvent $event
+	 */
+	protected function beforePagePath(HookEvent $event) {
+		/** @var Page $page */
+		$page = $event->object;
+		if($page->get_real_path) return;
+		if($page->custom_path) {
+			$event->replace = true;
+			$event->return = $page->custom_path;
+		}
+	}
+
+	/**
+	 * Return real path to a page that might have a custom path
+	 *
+	 * @param HookEvent $event
+	 */
+	protected function realPath(HookEvent $event) {
+		/** @var Page $page */
+		$page = $event->object;
+		$page->get_real_path = true;
+		$event->return = $page->path();
+		unset($page->get_real_path);
+	}
+
+	/**
+	 * After Pages::saveReady
+	 * Validate new custom path and add old custom path to PagePathHistory if installed
+	 *
+	 * @param HookEvent $event
+	 */
+	protected function afterPagesSaveReady(HookEvent $event) {
+		/** @var Pages $pages */
+		$pages = $event->object;
+		/** @var Page $page */
+		$page = $event->arguments(0);
+		if(!$page->hasField('custom_path') || !$page->isChanged('custom_path')) return;
+		$old_page = $pages->getById($page->id, [
+			'cache' => false,
+			'getFromCache' => false,
+			'getOne' => true,
+		]);
+		// Validate that custom path starts with a slash
+		if(substr($page->custom_path, 0, 1) !== '/') {
+			$this->error($this->_('The custom path value should be a path relative to the site root that starts with a forward slash. Custom path has been reset to previous value.'));
+			$page->custom_path = $old_page->custom_path;
+			return;
+		}
+		// Validate that no other page is using this custom path
+		$existing_page = $pages->get("custom_path={$page->custom_path}, id!={$page->id}");
+		if($existing_page->id) {
+			$this->error(sprintf($this->_('The custom path you entered is already in use by page ID %d. Custom path has been reset to previous value.'), $page->id));
+			$page->custom_path = $old_page->custom_path;
+			return;
+		}
+		// Add old custom path to PagePathHistory if installed
+		if($this->wire('modules')->isInstalled('PagePathHistory')) {
+			$page->addUrl($old_page->custom_path);
+		}
+	}
+
+	/**
+	 * Before ProcessPageEdit::buildForm
+	 * Move custom path field to Settings tab
+	 *
+	 * @param HookEvent $event
+	 */
+	protected function beforePageEditBuildForm(HookEvent $event) {
+		/** @var InputfieldForm $form */
+		$form = $event->return;
+		$content_tab = $form->children->get('id=ProcessPageEditContent');
+		if(!$content_tab) return;
+		$settings_tab = $form->children->get('id=ProcessPageEditSettings');
+		if(!$settings_tab) return;
+		$custom_path_field = $content_tab->getChildByName('custom_path');
+		if(!$custom_path_field) return;
+		$name_field = $settings_tab->getChildByName('_pw_page_name');
+		if($name_field) {
+			$settings_tab->insertAfter($custom_path_field, $name_field);
+		} else {
+			$settings_tab->prepend($custom_path_field);
+		}
+		$content_tab->remove($custom_path_field);
+	}
+
+	/**
+	 * Install
+	 */
+	public function ___install() {
+		$f = $this->wire('fields')->get('custom_path');
+		if($f) return;
+		$f = new Field();
+		$f->type = $this->wire('modules')->get('FieldtypeURL');
+		$f->name = 'custom_path';
+		$f->label = $this->_('Custom path');
+		$f->description = $this->_('If populated this should be a path relative to the site root that starts with a forward slash.');
+		$f->icon = 'long-arrow-right';
+		if($this->wire('modules')->isInstalled('TextformatterEntities')) {
+			$f->textformatters = ['TextformatterEntities'];
+		}
+		$f->save();
+	}
+
+	/**
+	 * Config inputfields
+	 *
+	 * @param InputfieldWrapper $inputfields
+	 */
+	public function getModuleConfigInputfields($inputfields) {
+		/* @var InputfieldCheckbox $f */
+		$f = $this->wire('modules')->get('InputfieldCheckbox');
+		$f_name = 'relocate_path_field';
+		$f->name = $f_name;
+		$f->label = $this->_('Field location');
+		$f->label2 = $this->_('Move "Custom path" field to Settings tab in Page Edit');
+		$f->checked = $this->$f_name === 1 ? 'checked' : '';
+		$inputfields->add($f);
+	}
+
+}
