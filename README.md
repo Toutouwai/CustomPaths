@@ -2,6 +2,10 @@
 
 A module for ProcessWire CMS/CMF. Allows any page to have a custom path/URL.
 
+## Screenshot
+
+![custom-paths](https://user-images.githubusercontent.com/1538852/80270665-3bc0bb80-870e-11ea-80cc-5fe8a8202079.png)
+
 ## Usage
 
 The module creates a field named `custom_path` on install. Add the `custom_path` field to the template of any page you want to set a custom path for. Whatever path is entered into this field determines the path and URL of the page (`$page->path` and `$page->url`). Page numbers and URL segments are supported if these are enabled for the template, and previous custom paths are managed by PagePathHistory if that module is installed.
@@ -41,6 +45,10 @@ $pages->addHookAfter('saveReady', function(HookEvent $event) {
 	}
 });
 ```
+
+## Caveats
+
+The custom paths will be used automatically for links created in CKEditor fields, but if you have the "link abstraction" option for enabled for CKEditor fields (Details > Markup/HTML (Content Type) > HTML Options) then you will see notices from MarkupQA warning you that it is unable to resolve the links.
 
 ## Installation
 
