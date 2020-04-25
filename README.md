@@ -28,10 +28,10 @@ You might want to use a `Page::saveReady` hook to automatically set the custom p
 
 ```php
 $pages->addHookAfter('saveReady', function(HookEvent $event) {
-	$page = $event->arguments(0);
-	if($page->template == 'my_template') {
-		$page->custom_path = "/some-custom/path-segments/$page->name/";
-	}
+    $page = $event->arguments(0);
+    if($page->template == 'my_template') {
+        $page->custom_path = "/some-custom/path-segments/$page->name/";
+    }
 });
 ```
 
@@ -39,10 +39,10 @@ $pages->addHookAfter('saveReady', function(HookEvent $event) {
 
 ```php
 $pages->addHookAfter('saveReady', function(HookEvent $event) {
-	$page = $event->arguments(0);
-	if($page->template == 'news_item') {
-		$page->custom_path = str_replace('/news-items', '', $page->realPath);
-	}
+    $page = $event->arguments(0);
+    if($page->template == 'news_item') {
+        $page->custom_path = str_replace('/news-items', '', $page->realPath);
+    }
 });
 ```
 
