@@ -41,7 +41,7 @@ $pages->addHookAfter('saveReady', function(HookEvent $event) {
 $pages->addHookAfter('saveReady', function(HookEvent $event) {
     $page = $event->arguments(0);
     if($page->template == 'news_item') {
-        $page->custom_path = str_replace('/news-items', '', $page->realPath);
+        $page->custom_path = str_replace('/news-items/', '/', $page->realPath);
     }
 });
 ```
