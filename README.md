@@ -14,7 +14,7 @@ The `custom_path` value takes precedence over any ProcessWire path. You can even
 
 It is highly recommended to set access controls on the `custom_path` field so that only privileged roles can edit it: superuser-only is recommended.
 
-It is up to the user to set and maintain suitable custom paths for any pages where the module is in use. If you are basing the custom path on the names of parent pages you should have a strategy for updating custom paths if parent pages are renamed or moved.
+It is up to the user to set and maintain suitable custom paths for any pages where the module is in use. Make sure your custom paths are compatible with ProcessWire's `$config` and `.htaccess` settings, and if you are basing the custom path on the names of parent pages you will probably want to have a strategy for updating custom paths if parent pages are renamed or moved.
 
 ### Example hooks to Pages::saveReady
 
