@@ -22,7 +22,7 @@ It is up to the user to set and maintain suitable custom paths for any pages whe
 
 ### Example hooks to Pages::saveReady
 
-You might want to use a `Page::saveReady` hook to automatically set the custom path for some pages. Below are a couple of examples.
+You might want to use a `Pages::saveReady` hook to automatically set the custom path for some pages. Below are a couple of examples.
 
 1\. In this example the start of the custom path is fixed but the end of the path will update dynamically according to the name of the page:
 
