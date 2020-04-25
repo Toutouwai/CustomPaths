@@ -48,7 +48,7 @@ $pages->addHookAfter('saveReady', function(HookEvent $event) {
 
 ## Caveats
 
-The custom paths will be used automatically for links created in CKEditor fields, but if you have the "link abstraction" option for enabled for CKEditor fields (Details > Markup/HTML (Content Type) > HTML Options) then you will see notices from MarkupQA warning you that it is unable to resolve the links.
+The custom paths will be used automatically for links created in CKEditor fields, but if you have the "link abstraction" option enabled for CKEditor fields (Details > Markup/HTML (Content Type) > HTML Options) then you will see notices from MarkupQA warning you that it is unable to resolve the links.
 
 ## Installation
 
