@@ -9,7 +9,7 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 		return array(
 			'title' => 'Custom Paths',
 			'summary' => 'Allows any page to have a custom path/URL.',
-			'version' => '0.1.1',
+			'version' => '0.1.2',
 			'author' => 'Robin Sallis',
 			'href' => 'https://github.com/Toutouwai/CustomPaths',
 			'icon' => 'long-arrow-right',
@@ -130,6 +130,11 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 				$page->custom_path = $old_page->custom_path;
 				return;
 			}
+			// Custom path must end in a slash
+			if(substr($page->custom_path, -1, 1) !== '/') {
+				$this->warning($this->_('The custom path value must end with a forward slash.'));
+				$page->custom_path .= '/';
+			}
 			// Validate that no other page is using this custom path
 			$existing_page = $pages->get("custom_path={$page->custom_path}, id!={$page->id}");
 			if($existing_page->id) {
@@ -178,7 +183,7 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 		$f->type = $this->wire('modules')->get('FieldtypeURL');
 		$f->name = 'custom_path';
 		$f->label = $this->_('Custom path');
-		$f->description = $this->_('If populated this should be a path relative to the site root that starts with a forward slash.');
+		$f->description = $this->_('If populated this should be a path relative to the site root that starts and ends with a forward slash.');
 		$f->icon = 'long-arrow-right';
 		if($this->wire('modules')->isInstalled('TextformatterEntities')) {
 			$f->textformatters = ['TextformatterEntities'];

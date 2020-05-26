@@ -4,7 +4,7 @@ A module for ProcessWire CMS/CMF. Allows any page to have a custom path/URL.
 
 ## Screenshot
 
-![custom-paths](https://user-images.githubusercontent.com/1538852/80270665-3bc0bb80-870e-11ea-80cc-5fe8a8202079.png)
+![custom-paths](https://user-images.githubusercontent.com/1538852/82958053-9d738e80-a008-11ea-9aba-0351cc61d24c.png)
 
 ## Usage
 
@@ -12,7 +12,7 @@ The module creates a field named `custom_path` on install. Add the `custom_path`
 
 The `custom_path` field appears on the Settings tab in Page Edit by default but there is an option in the module configuration to disable this if you want to position the field among the other template fields.
 
-If the `custom_path` field is populated for a page it should be a path that is relative to the site root and that starts with a forward slash. The module prevents the same custom path being set for more than one page.
+If the `custom_path` field is populated for a page it should be a path that is relative to the site root and that starts and ends with a forward slash. The module prevents the same custom path being set for more than one page.
 
 The `custom_path` value takes precedence over any ProcessWire path. You can even override the Home page by setting a custom path of "/" for a page.
 
