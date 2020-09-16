@@ -9,7 +9,7 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 		return array(
 			'title' => 'Custom Paths',
 			'summary' => 'Allows any page to have a custom path/URL.',
-			'version' => '0.1.2',
+			'version' => '0.1.3',
 			'author' => 'Robin Sallis',
 			'href' => 'https://github.com/Toutouwai/CustomPaths',
 			'icon' => 'long-arrow-right',
@@ -118,12 +118,12 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 		/** @var Page $page */
 		$page = $event->arguments(0);
 		if(!$page->hasField('custom_path') || !$page->isChanged('custom_path')) return;
+		$old_page = $pages->getById($page->id, [
+			'cache' => false,
+			'getFromCache' => false,
+			'getOne' => true,
+		]);
 		if($page->custom_path) {
-			$old_page = $pages->getById($page->id, [
-				'cache' => false,
-				'getFromCache' => false,
-				'getOne' => true,
-			]);
 			// Validate that custom path starts with a slash
 			if(substr($page->custom_path, 0, 1) !== '/') {
 				$this->error($this->_('The custom path value should be a path relative to the site root that starts with a forward slash. Custom path has been reset to previous value.'));
