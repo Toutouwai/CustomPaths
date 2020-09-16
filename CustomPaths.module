@@ -9,7 +9,7 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 		return array(
 			'title' => 'Custom Paths',
 			'summary' => 'Allows any page to have a custom path/URL.',
-			'version' => '0.1.3',
+			'version' => '0.1.4',
 			'author' => 'Robin Sallis',
 			'href' => 'https://github.com/Toutouwai/CustomPaths',
 			'icon' => 'long-arrow-right',
@@ -31,6 +31,7 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 	 */
 	public function init() {
 		$this->addHookBefore('ProcessPageView::execute', $this, 'beforeViewExecute');
+		$this->addHookAfter('ProcessPageView::execute', $this, 'afterViewExecute');
 	}
 
 	/**
@@ -75,6 +76,24 @@ class CustomPaths extends WireData implements Module, ConfigurableModule {
 		$suffix = substr($it, strlen($custom_path));
 		// Set "it"
 		$_GET['it'] = $real_path . $suffix;
+	}
+
+	/**
+	 * After ProcessPageView::execute
+	 * If page is accessed at its real path, redirect to its custom path
+	 *
+	 * @param HookEvent $event
+	 */
+	protected function afterViewExecute(HookEvent $event) {
+		$page = $this->wire('page');
+		if(!$page->custom_path) return;
+		$url = $_SERVER['REQUEST_URI'];
+		if(strpos($url, $page->custom_path) !== 0) {
+			$real_path = $page->realPath;
+			if(strpos($url, $real_path) === 0) {
+				$this->wire('session')->redirect(str_replace($real_path, $page->custom_path, $url));
+			}
+		}
 	}
 
 	/**
