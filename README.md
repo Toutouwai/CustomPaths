@@ -2,6 +2,8 @@
 
 A module for ProcessWire CMS/CMF. Allows any page to have a custom path/URL.
 
+**Note: Custom Paths is incompatible with the core LanguageSupportPageNames module.** I have no experience working with LanguageSupportPageNames or multi-language sites in general so I'm not in a position to work out if a fix is possible. If anyone with multi-language experience can contribute a fix it would be much appreciated!
+
 ## Screenshot
 
 ![custom-paths](https://user-images.githubusercontent.com/1538852/82958053-9d738e80-a008-11ea-9aba-0351cc61d24c.png)
